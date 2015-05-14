@@ -8,6 +8,10 @@ import subprocess
 import glob
 import sys
 import shutil
+import json
+import pycurl
+from StringIO import StringIO
+import errno
 
 # Gather environment info
 # expects to find SparkS3InstallPath defining path to tgz for install
@@ -16,8 +20,10 @@ import shutil
 # expects to find ScalaS3Location defining path to tgz for Scala install 
 SparkS3InstallPath = os.environ['SparkS3InstallPath']
 ScalaS3Location = os.environ['ScalaS3Location']
+SparkEC2Location = os.environ['SparkEC2Location']
 Ec2Region = os.environ['Ec2Region']
 SparkDriverLogLevel = os.environ['SparkDriverLogLevel']
+SparkDynamicAllocation = os.environ['SparkDynamicAllocation']
 
 #determine spark basename
 base, ext = os.path.splitext(SparkS3InstallPath)
@@ -31,28 +37,120 @@ if ScalaS3Location == "":
 	else:
 		ScalaS3Location = "s3://support.elasticmapreduce/spark/scala/scala-2.10.3.tgz"
 
+if SparkEC2Location == "":
+	if Ec2Region == "eu-central-1":
+		SparkEC2Location = "s3://eu-central-1.support.elasticmapreduce/spark/ec2-spark.json"
+	else:
+		SparkEC2Location = "s3://support.elasticmapreduce/spark/ec2-spark.json"
+#TODO		SparkEC2Location = "s3://support.elasticmapreduce/spark/ec2-spark.json"
+
 #determine Scala basename
 base, ext = os.path.splitext(ScalaS3Location)
 ScalaFilename = os.path.basename(ScalaS3Location)
+SparkEC2Filename = os.path.basename(SparkEC2Location)
 ScalaBase = os.path.basename(base)
-
 
 # various paths
 hadoop_home = "/home/hadoop"
 hadoop_apps = "/home/hadoop/.versions"
-local_dir = "/mnt/spark"
+local_dir = "/mnt/var/lib/spark/tmp"
 tmp_dir = "/mnt/staging-spark-install-files"
 spark_home = "/home/hadoop/spark"
 spark_classpath = os.path.join(spark_home,"classpath")
 spark_log_dir = "/mnt/var/log/apps"
+spark_pid_dir = "/mnt/var/run/spark"
 scala_home = os.path.join(hadoop_apps,ScalaBase)
 lock_file = '/tmp/spark-installed'
-
+job_flow_filename = '/mnt/var/lib/info/job-flow.json'
+instance_type_url = 'http://169.254.169.254/latest/meta-data/instance-type'
 
 subprocess.check_call(["/bin/mkdir","-p",tmp_dir])
+subprocess.check_call(["/bin/mkdir","-p",local_dir])
+
+def mkdir_p(path):
+	try:
+		os.makedirs(path)
+	except OSError as e:
+		if e.errno == errno.EEXIST and os.path.isdir(path):
+			pass
+		else: raise
+
+def get_instance_type():
+	buf = StringIO()
+	c = pycurl.Curl()
+	c.setopt(c.URL, instance_type_url)
+	c.setopt(c.WRITEFUNCTION, buf.write)
+	c.perform()
+	c.close()
+	return buf.getvalue()
+
+def evaluate_configs_from_json(ec2_spark_data):
+	instance_type = get_instance_type()
+	return ec2_spark_data[instance_type]
+
+def evaluate_config(job_flow_data, ec2_spark_data):
+	threads = 0
+	executors = 0
+	configs = None
+
+	core_group = []
+	task_groups = []
+	for group in job_flow_data["instanceGroups"]:
+		if group["instanceRole"] == "Core":
+			core_group.append(group)
+		if group["instanceRole"] == "Task":
+			task_groups.append(group)
+
+	core_threads = 2
+	core_executors = 1
+
+	# Configs taken from core instance type, assume TASK instance type
+	# is the same as CORE instance type.
+	# There should only be 1 CORE group
+	for group in core_group:
+		instance_type = group["instanceType"]
+		instance_count = group["requestedInstanceCount"]
+		
+		ec2_spark_instance = ec2_spark_data[instance_type]
+		configs = ec2_spark_data[instance_type]
+		# Accumulate total threads for default 'parallelize'
+		core_threads = ec2_spark_instance["threads"]
+		# Accumulate default executors to run
+		core_executors = (ec2_spark_instance["threads"] / ec2_spark_instance["spark.executor.cores"])
+	
+	# Assume TASK node instances are the same as CORE node instances
+	for group in core_group + task_groups:
+		instance_count = group["requestedInstanceCount"]
+		ec2_spark_instance = ec2_spark_data[instance_type]
+		threads += instance_count * core_threads
+		executors += instance_count * core_executors
+
+	if threads == 0:
+		threads = 2
+	if executors == 0:
+		executors = 1
+
+	return configs, threads, executors
+
+def parse_extra_instance_data():
+	configs = None
+	threads = None
+	executors = None
+	with open(job_flow_filename) as job_flow_data_file:
+		with open(os.path.join(tmp_dir,SparkEC2Filename)) as ec2_spark_file:
+			job_flow_data = json.load(job_flow_data_file)
+			ec2_spark_data = json.load(ec2_spark_file)
+
+			configs, threads, executors = evaluate_config(job_flow_data, ec2_spark_data)
+			# If configs cannot be determined from CORE group
+			# lazily base it off the master node instance type
+			if configs == None:
+				configs = evaluate_configs_from_json(ec2_spark_data)
+	return configs, threads, executors
 
 def download_and_uncompress_files():
 	subprocess.check_call(["hadoop","fs","-get",ScalaS3Location, tmp_dir])
+	subprocess.check_call(["hadoop","fs","-get",SparkEC2Location, tmp_dir])
 	subprocess.check_call(["hadoop","fs","-get",SparkS3InstallPath, tmp_dir])
 	subprocess.check_call(["/bin/tar", "zxvf" , os.path.join(tmp_dir,SparkFilename), "-C", hadoop_apps])
 	subprocess.check_call(["/bin/tar", "zxvf" , os.path.join(tmp_dir,ScalaFilename), "-C", hadoop_apps])
@@ -117,20 +215,70 @@ def prepare_classpath():
 	if not os.path.isfile(sparklog4j):
 		subprocess.check_call(["/bin/ln","-s",hadooplog4j,sparklog4j])
 
+	#create a symlink to allow for the spark_shuffle YARN AUX service
+	sparklib = spark_home + "/lib/"
+	yarnlib = hadoop_home + "/share/hadoop/yarn/lib/"
+	shuffleglob = "spark-*-yarn-shuffle.jar"
+	shufflejar = glob.glob(sparklib+shuffleglob)
+	for jar in shufflejar:
+		subprocess.check_call(["/bin/ln","-s",jar,yarnlib])
+	# configure yarn-site.xml for spark_shuffle
+	subprocess.call(["/usr/share/aws/emr/scripts/configure-hadoop","-y","yarn.nodemanager.aux-services=spark_shuffle,mapreduce_shuffle","-y","yarn.nodemanager.aux-services.spark_shuffle.class=org.apache.spark.network.yarn.YarnShuffleService"])
 
 def config():
 	# spark-default.conf
 	spark_defaults_tmp_location = os.path.join(tmp_dir,"spark-defaults.conf")
 	spark_default_final_location = os.path.join(spark_home,"conf")
-	with open(spark_defaults_tmp_location,'a') as spark_defaults:
+	# parse info from extraInstancesInfo.json and ec2-spark.json
+	configs, threads, executors = parse_extra_instance_data()
+	if threads == None:
+		threads = 64
+	if executors == None:
+		executors = 2
+	with open(spark_defaults_tmp_location,'w') as spark_defaults:
+		spark_defaults.write("spark.master yarn-default\n")
+		if SparkDynamicAllocation == "1":
+			spark_defaults.write("spark.dynamicAllocation.enabled true\n")
+		else:
+			spark_defaults.write("spark.dynamicAllocation.enabled false\n")
+			spark_defaults.write("spark.default.parallelism {0}\n".format(threads))
+			spark_defaults.write("spark.executor.instances {0}\n".format(executors))
+		
+		spark_defaults.write("spark.dynamicAllocation.initialExecutors {0}\n".format(executors))
+		spark_defaults.write("spark.dynamicAllocation.schedulerBacklogTimeout 4\n")
+		spark_defaults.write("spark.dynamicAllocation.sustainedSchedulerBacklogTimeout 2\n")
+		spark_defaults.write("spark.dynamicAllocation.executorIdleTimeout 180\n")
+
+		if configs != None:
+			spark_tmp_dirs = configs["spark.local.dir"].split(",")
+			# make local directories
+			for tmpdir in spark_tmp_dirs:
+				mkdir_p(tmpdir)
+			# Much of these configs are based on hadoop task configs
+			spark_defaults.write("spark.driver.memory {0}\n".format(configs["spark.driver.memory"]))
+			spark_defaults.write("spark.driver.cores {0}\n".format(configs["spark.driver.cores"]))
+			spark_defaults.write("spark.executor.memory {0}\n".format(configs["spark.executor.memory"]))
+			spark_defaults.write("spark.executor.cores {0}\n".format(configs["spark.executor.cores"]))
+			spark_defaults.write("spark.local.dir {0}\n".format(configs["spark.local.dir"]))
+		else:
+			spark_defaults.write("spark.local.dir {0}\n".format(local_dir))
+	
+		# All JVMs are less than 32GB even on large nodes
+		# GC pauses can be shortened
+		spark_defaults.write("spark.executor.extraJavaOptions -verbose:gc -XX:+PrintGCDetails -XX:+PrintGCDateStamps -XX:+UseCompressedOops -XX:+UseConcMarkSweepGC\n")
+		spark_defaults.write("spark.driver.extraJavaOptions -Dspark.driver.log.level={0}\n".format(SparkDriverLogLevel))
+		spark_defaults.write("spark.locality.wait.rack 0\n")
 		spark_defaults.write("spark.eventLog.enabled  false\n") #default to off, when history server is started will change to true
-		spark_defaults.write("spark.executor.extraJavaOptions         -verbose:gc -XX:+PrintGCDetails -XX:+PrintGCDateStamps -XX:+UseConcMarkSweepGC -XX:CMSInitiatingOccupancyFraction=70 -XX:MaxHeapFreeRatio=70\n")
-		spark_defaults.write("spark.driver.extraJavaOptions         -Dspark.driver.log.level={0}\n".format(SparkDriverLogLevel))
+		spark_defaults.write("spark.serializer org.apache.spark.serializer.KryoSerializer\n")
+		# Spark shuffler service relies on YARN configurations
+		spark_defaults.write("spark.shuffle.service.enabled true\n")
+		spark_defaults.write("spark.shuffle.consolidateFiles true\n")
 	subprocess.check_call(["/bin/mv",spark_defaults_tmp_location,spark_default_final_location])
 
 	# bashrc file
 	with open("/home/hadoop/.bashrc","a") as bashrc:
 		bashrc.write("export SCALA_HOME={0}".format(scala_home))
+		bashrc.write("export PATH=$PATH:{0}".format(spark_home+"/bin"))
 
 	# spark-env.sh
 	spark_env_tmp_location = os.path.join(tmp_dir,"spark-env.sh")
@@ -146,11 +294,12 @@ def config():
 
 	#subprocess.check_call(["/bin/mkdir","-p",spark_log_dir])
 	subprocess.call(["/bin/mkdir","-p",spark_log_dir])
+	subprocess.call(["/bin/mkdir","-p",spark_pid_dir])
 
 	with open(spark_env_tmp_location,'a') as spark_env:
-		spark_env.write("export SPARK_DAEMON_JAVA_OPTS=\"-verbose:gc -XX:+PrintGCDetails -XX:+PrintGCDateStamps -XX:+UseConcMarkSweepGC -XX:CMSInitiatingOccupancyFraction=70 -XX:MaxHeapFreeRatio=70\"\n")
 		spark_env.write("export SPARK_LOCAL_DIRS={0}\n".format(local_dir))
 		spark_env.write("export SPARK_LOG_DIR={0}\n".format(spark_log_dir))
+		spark_env.write("export SPARK_PID_DIR={0}\n".format(spark_pid_dir))
 		spark_env.write("export SPARK_CLASSPATH=\"{4}/conf:/home/hadoop/conf:{0}/emr/*:{1}/emrfs/*:{2}/share/hadoop/common/lib/*:{3}\"\n".format(spark_classpath,spark_classpath,hadoop_home,lzo_jar,spark_home))
 
 	subprocess.check_call(["mv",spark_env_tmp_location,spark_env_final_location])

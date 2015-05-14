@@ -1,0 +1,290 @@
+{
+    "m1.medium": {
+        "container": 2048,
+	"threads": 2,
+	"spark.driver.memory": "768m",
+	"spark.driver.cores": 2,
+        "spark.executor.memory": "1536m",
+        "spark.executor.cores": 2,
+        "spark.local.dir": "/mnt/var/lib/spark/tmp"
+    },
+    "m1.large": {
+        "container": 5120,
+	"threads": 4,
+	"spark.driver.memory": "1920m",
+	"spark.driver.cores": 4,
+        "spark.executor.memory": "3840m",
+        "spark.executor.cores": 4,
+        "spark.local.dir": "/mnt/var/lib/spark/tmp,/mnt1/var/lib/spark/tmp"
+    },
+    "m1.xlarge": {
+        "container": 12288,
+	"threads": 8,
+	"spark.driver.memory": "2304m",
+	"spark.driver.cores": 4,
+        "spark.executor.memory": "9216m",
+        "spark.executor.cores": 8,
+        "spark.local.dir": "/mnt/var/lib/spark/tmp,/mnt1/var/lib/spark/tmp,/mnt2/var/lib/spark/tmp,/mnt3/var/lib/spark/tmp"
+    },
+    "m2.xlarge": {
+        "container": 14336,
+	"threads": 4,
+	"spark.driver.memory": "2688m",
+	"spark.driver.cores": 4,
+        "spark.executor.memory": "10752m",
+        "spark.executor.cores": 4,
+        "spark.local.dir": "/mnt/var/lib/spark/tmp"
+    },
+    "m2.2xlarge": {
+        "container": 30720,
+	"threads": 8,
+	"spark.driver.memory": "5760m",
+	"spark.driver.cores": 8,
+        "spark.executor.memory": "23040m",
+        "spark.executor.cores": 8,
+        "spark.local.dir": "/mnt/var/lib/spark/tmp"
+    },
+    "m2.4xlarge": {
+        "container": 61440,
+	"threads": 16,
+	"spark.driver.memory": "11520m",
+	"spark.driver.cores": 8,
+        "spark.executor.memory": "23040m",
+        "spark.executor.cores": 8,
+        "spark.local.dir": "/mnt/var/lib/spark/tmp,/mnt1/var/lib/spark/tmp"
+    },
+    "m3.xlarge": {
+        "container": 11520,
+	"threads": 8,
+	"spark.driver.memory": "2160m",
+	"spark.driver.cores": 4,
+        "spark.executor.memory": "8640m",
+        "spark.executor.cores": 8,
+        "spark.local.dir": "/mnt/var/lib/spark/tmp,/mnt1/var/lib/spark/tmp"
+    },
+    "m3.2xlarge": {
+        "container": 23040,
+	"threads": 16,
+	"spark.driver.memory": "4320m",
+	"spark.driver.cores": 8,
+        "spark.executor.memory": "17280m",
+        "spark.executor.cores": 16,
+        "spark.local.dir": "/mnt/var/lib/spark/tmp,/mnt1/var/lib/spark/tmp"
+    },
+    "c1.medium": {
+        "container": 1024,
+	"threads": 2,
+	"spark.driver.memory": "384m",
+	"spark.driver.cores": 2,
+        "spark.executor.memory": "768m",
+        "spark.executor.cores": 4,
+        "spark.local.dir": "/mnt/var/lib/spark/tmp"
+    },
+    "c1.xlarge": {
+        "container": 5120,
+	"threads": 16,
+	"spark.driver.memory": "1920m",
+	"spark.driver.cores": 4,
+        "spark.executor.memory": "3840m",
+        "spark.executor.cores": 16,
+        "spark.local.dir": "/mnt/var/lib/spark/tmp,/mnt1/var/lib/spark/tmp,/mnt2/var/lib/spark/tmp,/mnt3/var/lib/spark/tmp"
+    },
+    "c3.xlarge": {
+        "container": 5632,
+	"threads": 8,
+	"spark.driver.memory": "2112m",
+	"spark.driver.cores": 4,
+        "spark.executor.memory": "4224m",
+        "spark.executor.cores": 8,
+        "spark.local.dir": "/mnt/var/lib/spark/tmp,/mnt1/var/lib/spark/tmp"
+    },
+    "c3.2xlarge": {
+        "container": 11520,
+	"threads": 16,
+	"spark.driver.memory": "4320m",
+	"spark.driver.cores": 8,
+        "spark.executor.memory": "8640m",
+        "spark.executor.cores": 16,
+        "spark.local.dir": "/mnt/var/lib/spark/tmp,/mnt1/var/lib/spark/tmp"
+    },
+    "c3.4xlarge": {
+        "container": 23040,
+	"threads": 32,
+	"spark.driver.memory": "8640m",
+	"spark.driver.cores": 16,
+        "spark.executor.memory": "17280m",
+        "spark.executor.cores": 32,
+        "spark.local.dir": "/mnt/var/lib/spark/tmp,/mnt1/var/lib/spark/tmp"
+    },
+    "c3.8xlarge": {
+        "container": 53248,
+	"threads": 64,
+	"spark.driver.memory": "19968m",
+	"spark.driver.cores": 32,
+        "spark.executor.memory": "19968m",
+        "spark.executor.cores": 32,
+        "spark.local.dir": "/mnt/var/lib/spark/tmp,/mnt1/var/lib/spark/tmp"
+    },
+    "cg1.4xlarge": {
+        "container": 20480,
+	"threads": 32,
+	"spark.driver.memory": "7680m",
+	"spark.driver.cores": 16,
+        "spark.executor.memory": "15360m",
+        "spark.executor.cores": 32,
+        "spark.local.dir": "/mnt/var/lib/spark/tmp,/mnt1/var/lib/spark/tmp"
+    },
+    "cc2.8xlarge": {
+        "container": 56320,
+	"threads": 64,
+	"spark.driver.memory": "21120m",
+	"spark.driver.cores": 32,
+        "spark.executor.memory": "21120m",
+        "spark.executor.cores": 32,
+        "spark.local.dir": "/mnt/var/lib/spark/tmp,/mnt1/var/lib/spark/tmp,/mnt2/var/lib/spark/tmp,/mnt3/var/lib/spark/tmp"
+    },
+    "cr1.8xlarge": {
+        "container": 241664,
+	"threads": 64,
+	"spark.driver.memory": "22656m",
+	"spark.driver.cores": 32,
+        "spark.executor.memory": "22656m",
+        "spark.executor.cores": 8,
+        "spark.local.dir": "/mnt/var/lib/spark/tmp,/mnt1/var/lib/spark/tmp"
+    },
+    "d2.xlarge": {
+        "container": 23424,
+	"threads": 8,
+	"spark.driver.memory": "2196m",
+	"spark.driver.cores": 4,
+        "spark.executor.memory": "17568m",
+        "spark.executor.cores": 8,
+        "spark.local.dir": "/mnt/var/lib/spark/tmp,/mnt1/var/lib/spark/tmp,/mnt2/var/lib/spark/tmp"
+    },
+    "d2.2xlarge": {
+        "container": 54272,
+	"threads": 16,
+	"spark.driver.memory": "5088m",
+	"spark.driver.cores": 8,
+        "spark.executor.memory": "20352m",
+        "spark.executor.cores": 8,
+        "spark.local.dir": "/mnt/var/lib/spark/tmp,/mnt1/var/lib/spark/tmp,/mnt2/var/lib/spark/tmp,/mnt3/var/lib/spark/tmp,/mnt4/var/lib/spark/tmp,/mnt5/var/lib/spark/tmp"
+    },
+    "d2.4xlarge": {
+        "container": 116736,
+	"threads": 32,
+	"spark.driver.memory": "10944m",
+	"spark.driver.cores": 16,
+        "spark.executor.memory": "21888m",
+        "spark.executor.cores": 8,
+        "spark.local.dir": "/mnt/var/lib/spark/tmp,/mnt1/var/lib/spark/tmp,/mnt2/var/lib/spark/tmp,/mnt3/var/lib/spark/tmp,/mnt4/var/lib/spark/tmp,/mnt5/var/lib/spark/tmp,/mnt6/var/lib/spark/tmp,/mnt7/var/lib/spark/tmp,/mnt8/var/lib/spark/tmp,/mnt9/var/lib/spark/tmp,/mnt10/var/lib/spark/tmp,/mnt11/var/lib/spark/tmp"
+    },
+    "d2.8xlarge": {
+        "container": 241664,
+	"threads": 64,
+	"spark.driver.memory": "22656m",
+	"spark.driver.cores": 32,
+        "spark.executor.memory": "22656m",
+        "spark.executor.cores": 8,
+        "spark.local.dir": "/mnt/var/lib/spark/tmp,/mnt1/var/lib/spark/tmp,/mnt2/var/lib/spark/tmp,/mnt3/var/lib/spark/tmp,/mnt4/var/lib/spark/tmp,/mnt5/var/lib/spark/tmp,/mnt6/var/lib/spark/tmp,/mnt7/var/lib/spark/tmp,/mnt8/var/lib/spark/tmp,/mnt9/var/lib/spark/tmp,/mnt10/var/lib/spark/tmp,/mnt11/var/lib/spark/tmp,/mnt12/var/lib/spark/tmp,/mnt13/var/lib/spark/tmp,/mnt14/var/lib/spark/tmp,/mnt15/var/lib/spark/tmp,/mnt16/var/lib/spark/tmp,/mnt17/var/lib/spark/tmp,/mnt18/var/lib/spark/tmp,/mnt19/var/lib/spark/tmp,/mnt20/var/lib/spark/tmp,/mnt21/var/lib/spark/tmp,/mnt22/var/lib/spark/tmp,/mnt23/var/lib/spark/tmp"
+    },
+    "g2.2xlarge": {
+        "container": 12288,
+	"threads": 16,
+	"spark.driver.memory": "9216m",
+	"spark.driver.cores": 16,
+        "spark.executor.memory": "9216m",
+        "spark.executor.cores": 16,
+        "spark.local.dir": "/mnt/var/lib/spark/tmp"
+    },
+    "hi1.4xlarge": {
+        "container": 40320,
+	"threads": 32,
+	"spark.driver.memory": "15120m",
+	"spark.driver.cores": 16,
+        "spark.executor.memory": "15120m",
+        "spark.executor.cores": 16,
+        "spark.local.dir": "/mnt/var/lib/spark/tmp,/mnt1/var/lib/spark/tmp"
+    },
+    "hs1.8xlarge": {
+        "container": 56320,
+	"threads": 32,
+	"spark.driver.memory": "21120m",
+	"spark.driver.cores": 16,
+        "spark.executor.memory": "21120m",
+        "spark.executor.cores": 16,
+        "spark.local.dir": "/mnt/var/lib/spark/tmp,/mnt1/var/lib/spark/tmp,/mnt2/var/lib/spark/tmp,/mnt3/var/lib/spark/tmp,/mnt4/var/lib/spark/tmp,/mnt5/var/lib/spark/tmp,/mnt6/var/lib/spark/tmp,/mnt7/var/lib/spark/tmp,/mnt8/var/lib/spark/tmp,/mnt9/var/lib/spark/tmp,/mnt10/var/lib/spark/tmp,/mnt11/var/lib/spark/tmp,/mnt12/var/lib/spark/tmp,/mnt13/var/lib/spark/tmp,/mnt14/var/lib/spark/tmp,/mnt15/var/lib/spark/tmp,/mnt16/var/lib/spark/tmp,/mnt17/var/lib/spark/tmp,/mnt18/var/lib/spark/tmp,/mnt19/var/lib/spark/tmp,/mnt20/var/lib/spark/tmp,/mnt21/var/lib/spark/tmp,/mnt22/var/lib/spark/tmp,/mnt23/var/lib/spark/tmp"
+    },
+    "i2.xlarge": {
+        "container": 23424,
+	"threads": 8,
+        "spark.driver.memory": "2196m",
+        "spark.driver.cores": 4,
+        "spark.executor.memory": "17568m",
+        "spark.executor.cores": 8,
+        "spark.local.dir": "/mnt/var/lib/spark/tmp"
+    },
+    "i2.2xlarge": {
+        "container": 54272,
+	"threads": 16,
+        "spark.driver.memory": "5088m",
+        "spark.driver.cores": 8,
+        "spark.executor.memory": "20352m",
+        "spark.executor.cores": 8,
+        "spark.local.dir": "/mnt/var/lib/spark/tmp,/mnt1/var/lib/spark/tmp"
+    },
+    "i2.4xlarge": {
+        "container": 116736,
+	"threads": 32,
+        "spark.driver.memory": "10944m",
+        "spark.driver.cores": 16,
+        "spark.executor.memory": "21888m",
+        "spark.executor.cores": 8,
+        "spark.local.dir": "/mnt/var/lib/spark/tmp,/mnt1/var/lib/spark/tmp,/mnt2/var/lib/spark/tmp,/mnt3/var/lib/spark/tmp"
+    },
+    "i2.8xlarge": {
+        "container": 241664,
+	"threads": 64,
+        "spark.driver.memory": "22656m",
+        "spark.driver.cores": 32,
+        "spark.executor.memory": "22656m",
+        "spark.executor.cores": 8,
+        "spark.local.dir": "/mnt/var/lib/spark/tmp,/mnt1/var/lib/spark/tmp,/mnt2/var/lib/spark/tmp,/mnt3/var/lib/spark/tmp,/mnt4/var/lib/spark/tmp,/mnt5/var/lib/spark/tmp,/mnt6/var/lib/spark/tmp,/mnt7/var/lib/spark/tmp"
+    },
+    "r3.xlarge": {
+        "container": 23424,
+	"threads": 8,
+        "spark.driver.memory": "2196m",
+        "spark.driver.cores": 4,
+        "spark.executor.memory": "17568m",
+        "spark.executor.cores": 8,
+        "spark.local.dir": "/mnt/var/lib/spark/tmp"
+    },
+    "r3.2xlarge": {
+        "container": 54272,
+	"threads": 16,
+        "spark.driver.memory": "5088m",
+        "spark.driver.cores": 8,
+        "spark.executor.memory": "20352m",
+        "spark.executor.cores": 8,
+        "spark.local.dir": "/mnt/var/lib/spark/tmp"
+    },
+    "r3.4xlarge": {
+        "container": 116736,
+	"threads": 32,
+        "spark.driver.memory": "10944m",
+        "spark.driver.cores": 16,
+        "spark.executor.memory": "21888m",
+        "spark.executor.cores": 8,
+        "spark.local.dir": "/mnt/var/lib/spark/tmp"
+    },
+    "r3.8xlarge": {
+        "container": 241664,
+	"threads": 64,
+        "spark.driver.memory": "22656m",
+        "spark.driver.cores": 32,
+        "spark.executor.memory": "22656m",
+        "spark.executor.cores": 8,
+        "spark.local.dir": "/mnt/var/lib/spark/tmp,/mnt1/var/lib/spark/tmp"
+    }
+}

@@ -13,6 +13,7 @@ set -x
 #   -a		      - (Use cautiously) Place spark-assembly-*.jar ahead of all system jars on spark classpath
 #   -l		      - Set the log level of log4j.logger.org.apache.spark for the driver, defaults to INFO (OFF,ERROR,WARN,INFO,DEBUG,ALL), passed as env variable SparkDriverLogLevel to script
 #   -h		      - Include EMR Hive jars in Spark classpath, this provides the enhancements from EMR Hive though may be at compatibility cost of some Spark features which expect Hive 0.14
+#   -d                - Enables Spark Dynamic allocation.
 #
 #
 #  For AWS provided Spark builds and installs refer to https://github.com/awslabs/emr-bootstrap-actions/blob/master/spark/README.md
@@ -87,8 +88,10 @@ SPARK_DRIVER_LOG_LEVEL="INFO"
 
 USE_EMR_HIVE_JARS=0
 
+SPARK_DYNAMIC_ALLOCATION=0
+
 #process command line arguments
-while getopts "c:v:gb:xu:al:h" opt; do
+while getopts "c:v:gb:xu:al:dh" opt; do
   case $opt in
     c)
       CONFIG_FILE=$OPTARG
@@ -114,8 +117,12 @@ while getopts "c:v:gb:xu:al:h" opt; do
     l)
       SPARK_DRIVER_LOG_LEVEL=$OPTARG
       ;;
+    d)
+      SPARK_DYNAMIC_ALLOCATION=1
+      ;;
     h)
       USE_EMR_HIVE_JARS=1
+      ;;
   esac
 done
 
@@ -234,7 +241,9 @@ export SparkS3InstallPath="${CONFIG_FIELDS_ARRAY[4]}"
 export SparkBuild="$SPARK_BUILD"
 export Ec2Region="$REGION"
 export ScalaS3Location="${CONFIG_FIELDS_ARRAY[7]}"
+export SparkEC2Location=
 export SparkDriverLogLevel="$SPARK_DRIVER_LOG_LEVEL"
+export SparkDynamicAllocation="$SPARK_DYNAMIC_ALLOCATION"
 
 CMDOUT=$(${CONFIG_FIELDS_ARRAY[2]} $TMPLOCATION/install-spark-script)
 CMDSIG=$?
